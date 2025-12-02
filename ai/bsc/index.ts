@@ -13,7 +13,7 @@ export const bscTool = <Schema extends z.ZodType<any, any>, ResultBody>(
       parameters: action.argsSchema,
     });
   }
-  
+
   return tool({
     description: action.description,
     parameters: action.argsSchema,
@@ -27,9 +27,9 @@ export const bscTool = <Schema extends z.ZodType<any, any>, ResultBody>(
       };
     }
   });
-}
+};
 
 export const bscTools = (actions: BscAction<any, any>[]) => actions.reduce((acc, action) => {
   acc[action.name] = bscTool(action);
   return acc;
-}, {} as Record<string, CoreTool>); 
+}, {} as Record<string, CoreTool>);

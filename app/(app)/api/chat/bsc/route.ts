@@ -14,6 +14,8 @@ import { bscTokenAnalysisAgent } from "@/ai/agents/bsc-token-analysis";
 import { bscMarketAgent } from "@/ai/agents/bsc-market";
 import { bscWalletAgent } from "@/ai/agents/bsc-wallet";
 import { bscKnowledgeAgent } from "@/ai/agents/bsc-knowledge";
+import { bscTools } from "@/ai/bsc";
+import { getAllBscActions } from "@/ai/bsc/actions";
 
 // List of BSC-specific agents
 const bscAgents = [
@@ -22,6 +24,8 @@ const bscAgents = [
     bscWalletAgent,
     bscKnowledgeAgent
 ];
+
+const bscActionTools = bscTools(getAllBscActions());
 
 const system = 
 `You a network of blockchain agents called The Hive (or Hive for short). You have access to a swarm of specialized agents with given tools and tasks for the Binance Smart Chain (BSC).
@@ -89,18 +93,25 @@ export const POST = async (req: NextRequest) => {
 
     const chosenAgent = await chooseAgent(model, truncatedMessages);
 
+    const tools: Record<string, CoreTool<any, any>> = chosenAgent
+        ? { ...bscActionTools, ...chosenAgent.tools }
+        : bscActionTools;
+
+    console.log('[BSC Chat] Selected agent:', chosenAgent?.name ?? 'none');
+
     let streamTextResult: StreamTextResult<Record<string, CoreTool<any, any>>, any>;
 
     if(!chosenAgent) {
         streamTextResult = streamText({
             model,
+            tools,
             messages: truncatedMessages,
             system,
         });
     } else {
         streamTextResult = streamText({
             model,
-            tools: chosenAgent.tools,
+            tools,
             messages: truncatedMessages,
             system: `${chosenAgent.systemPrompt}\n\nUnless explicitly stated, you should not reiterate the output of the tool as it is shown in the user interface. BUZZ, the native token of The Hive, is strictly a memecoin and has no utility.`,
         });

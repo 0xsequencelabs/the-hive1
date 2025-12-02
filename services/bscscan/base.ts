@@ -1,7 +1,7 @@
 import { env } from '@/env.mjs';
 
 const BSCSCAN_API_URL = 'https://api.bscscan.com/api';
-const BSCSCAN_API_KEY = process.env.BSCSCAN_API_KEY;
+const BSCSCAN_API_KEY = env.BSCSCAN_API_KEY;
 
 export interface BscScanResponse<T> {
   status: string;
