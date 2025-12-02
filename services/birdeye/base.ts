@@ -6,7 +6,9 @@ export const queryBirdeye = async <T>(
   params?: Record<string, string | number>,
   chain: ChainType = 'solana'
 ): Promise<T> => {
-  const url = new URL(`https://public-api.birdeye.so/${endpoint}`);
+  const baseUrl = process.env.BIRDEYE_API_BASE_URL || 'https://public-api.birdeye.so';
+
+  const url = new URL(`${baseUrl.replace(/\/$/, '')}/${endpoint}`);
   
   url.searchParams.append('chain', chain);
   
@@ -20,6 +22,13 @@ export const queryBirdeye = async <T>(
 
   const xChainValue = chain;
   const apiKey = process.env.BIRDEYE_API_KEY || '';
+  const usingDefaultBirdeye = baseUrl.includes('birdeye.so');
+
+  if (!apiKey && usingDefaultBirdeye) {
+    throw new Error(
+      'BIRDEYE_API_KEY is not configured. Please add it to your environment or set BIRDEYE_API_BASE_URL to your own service.'
+    );
+  }
   
   console.log(`[Birdeye API] Making request:
   - URL: ${url.toString()}
@@ -30,11 +39,14 @@ export const queryBirdeye = async <T>(
   - Params:`, params);
 
   try {
-    const headers = {
-      'X-API-KEY': apiKey,
-      'accept': 'application/json',
-      'x-chain': xChainValue
+    const headers: Record<string, string> = {
+      accept: 'application/json',
+      'x-chain': xChainValue,
     };
+
+    if (apiKey) {
+      headers['X-API-KEY'] = apiKey;
+    }
 
     console.log('[Birdeye API] Request headers:', headers);
 
